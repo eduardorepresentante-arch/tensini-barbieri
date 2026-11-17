@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agenda · Tensini Barbieri</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#070707">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="admin.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Space+Grotesk:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: app de bolso — barra da marca no topo, abas no rodapé (Pedidos, Agenda, Bloquear, Ajustes), cartões de agendamento */
+:root {
+  --bg: #070707; --surface: #111010; --raise: #1b1913; --ink: #f5efe3; --muted: #a69c87; --line: #2a2519;
+  --accent: #d4a84b; --accent-ink: #140f04; --sand: #f4dc95; --ok: #4fd18b; --warn: #f2b84b; --no: #ff7d88;
+  --gold-grad: linear-gradient(135deg, #f7e6a6 0%, #d9ae4f 38%, #a77b2a 70%, #f0d48a 100%);
+  --display: "Space Grotesk", system-ui, sans-serif; --caps: "Cinzel", Georgia, serif; --body: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; min-height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.5 var(--body); padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 720px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; line-height: 1.15; letter-spacing: -.015em; }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+header { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: color-mix(in srgb, var(--bg) 92%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+header .wrap { display: flex; align-items: center; gap: 12px; padding-block: 10px; }
+header img { width: 38px; height: 38px; border-radius: 11px; object-fit: cover; border: 1px solid rgba(212,168,75,.45); }
+.brand { display: grid; line-height: 1.1; }
+.brand b { font: 800 .95rem var(--caps); letter-spacing: .14em; color: #dedbd3; }
+.brand small { color: var(--muted); font-size: .72rem; }
+.conn { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; color: var(--muted); }
+.conn i { width: 8px; height: 8px; border-radius: 50%; background: var(--no); }
+.conn.on i { background: var(--ok); animation: pulse 1.8s ease-out infinite; }
+@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(108,197,146,.6); } 100% { box-shadow: 0 0 0 8px transparent; } }
+
+.btn { border: 0; border-radius: 12px; padding: 11px 18px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; transition: transform .12s, opacity .12s; }
+.btn:active { transform: scale(.96); }
+.btn[disabled] { opacity: .45; cursor: wait; }
+.b-ok { background: var(--ok); color: #0d2417; }
+.b-accent { background: var(--gold-grad); color: var(--accent-ink); }
+.b-wa { background: #25d366; color: #052e16; }
+.b-ghost { background: transparent; border: 1px solid var(--line); color: var(--ink); }
+.b-no { background: transparent; border: 1px solid color-mix(in srgb, var(--no) 50%, transparent); color: var(--no); }
+.b-no.armed { background: var(--no); color: #2a0a10; }
+.btn.small { padding: 7px 12px; font-size: .82rem; }
+
+main { padding-block: 18px 24px; }
+.view { display: grid; gap: 14px; }
+.view > h2 { font-size: 1.7rem; }
+.view > h2 em { color: var(--accent); }
+.sub { color: var(--muted); font-size: .9rem; }
+.demo { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: .85rem; }
+
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 10px; animation: in .35s ease-out; }
+.card.off { opacity: .6; }
+.card.off:focus-within { opacity: 1; }
+.card.new { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+@keyframes in { from { transform: translateY(8px); opacity: .3; } }
+.card .top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.card h3 { font-size: 1.3rem; }
+.card .when { font-weight: 600; }
+.card .meta { color: var(--muted); font-size: .88rem; display: grid; gap: 2px; }
+.card .notes { background: var(--raise); border-radius: 10px; padding: 8px 10px; font-size: .88rem; color: var(--muted); white-space: pre-wrap; overflow-wrap: anywhere; }
+.card .price { font: 600 1.3rem var(--display); color: var(--accent); white-space: nowrap; }
+.card .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.pill { font-size: .74rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+.p-pending { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.p-confirmed { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.p-done { background: var(--raise); color: var(--muted); }
+.p-cancelled, .p-expired { background: color-mix(in srgb, var(--no) 16%, transparent); color: var(--no); }
+.p-block { background: var(--raise); color: var(--sand); }
+.empty { text-align: center; color: var(--muted); padding: 40px 10px; border: 1px dashed var(--line); border-radius: 18px; }
+.empty b { display: block; font: 600 1.2rem var(--display); color: var(--ink); margin-bottom: 4px; }
+details.old { color: var(--muted); }
+details.old summary { cursor: pointer; padding: 6px 0; }
+details.old .card { margin-top: 10px; opacity: .8; }
+
+/* calendário da agenda: o mesmo do site (escuro, dia escolhido em dourado) */
+.cal { border-radius: 20px; overflow: hidden; background: var(--surface); border: 1px solid var(--line); margin-top: 12px; }
+.cal-head { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 12px 8px; border-bottom: 1px solid var(--line); background: linear-gradient(180deg, rgba(212,168,75,.10), transparent); }
+.cal-title { display: grid; justify-items: center; }
+.cal-title small { font: 500 .62rem var(--mono); letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
+.cal-title strong { font: 600 1.5rem/1.2 var(--display); }
+.cal-nav { width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--ink); display: grid; place-items: center; cursor: pointer; }
+.cal-nav:hover { border-color: var(--accent); }
+.cal-wd { display: grid; grid-template-columns: repeat(7, 1fr); padding: 12px 8px 4px; text-align: center; font: 600 .64rem var(--mono); letter-spacing: .08em; color: #6f6757; }
+.days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; padding: 4px 8px 12px; }
+.days .cell, .day { position: relative; height: 50px; }
+.day { display: grid; place-items: center; border: 1px solid transparent; background: none; padding: 0; cursor: pointer; color: var(--ink); font: 600 1.02rem/1 var(--display); border-radius: 12px; font-variant-numeric: tabular-nums; }
+.day:hover { background: var(--raise); border-color: var(--line); }
+.day[aria-pressed="true"] { background: var(--gold-grad); color: #140f04; }
+.day.off { color: #3b362c; }
+.day.today::after { content: ""; position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+.day[aria-pressed="true"].today::after { background: #140f04; }
+.day .cnt { position: absolute; top: 2px; right: 2px; z-index: 1; min-width: 17px; height: 17px; border-radius: 9px; background: var(--accent); color: #140f04; font: 700 .62rem/1 var(--mono); display: grid; place-items: center; padding: 0 4px; }
+.day[aria-pressed="true"] .cnt { background: #140f04; color: var(--sand); }
+/* barbeiros */
+.bfilter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.bfilter::-webkit-scrollbar { display: none; }
+.bfilter button { flex: none; display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--line); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: .84rem; cursor: pointer; }
+.bfilter button i { width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--accent)); }
+.bfilter button[aria-pressed="true"] { color: var(--ink); border-color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c, var(--accent)) 14%, var(--surface)); }
+.bpill { display: inline-flex; align-items: center; gap: 6px; font: 600 .74rem var(--mono); padding: 3px 9px; border-radius: 999px; color: var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); white-space: nowrap; }
+.bpill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.lane { display: grid; gap: 10px; }
+.lane-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 2px 0; border-top: 2px solid var(--c); }
+.lane-head h3 { font-size: 1.15rem; display: flex; align-items: center; gap: 8px; }
+.lane-head h3::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.lane-head small { color: var(--muted); font: 600 .74rem var(--mono); }
+.card { border-left: 3px solid var(--c, var(--line)); }
+/* um barbeiro só: some tudo que é escolha/rótulo de barbeiro */
+.solo .bfilter, .solo .bpill, .solo .lane-head, .solo #m-barber-wrap, .solo #b-barber-wrap, .solo #f-barbers-panel { display: none !important; }
+.solo .card { border-left-color: var(--line); }
+.timeline { display: grid; gap: 10px; }
+.slot { display: grid; grid-template-columns: 64px 1fr; gap: 12px; align-items: start; }
+.slot .t { font-variant-numeric: tabular-nums; color: var(--muted); padding-top: 16px; font-size: .9rem; }
+.slot .t b { display: block; color: var(--ink); font: 600 1rem var(--mono); }
+.slot .card { min-width: 0; }
+.free { color: var(--muted); font-size: .88rem; padding: 10px 14px; border-radius: 12px; border: 1px dashed var(--line); }
+
+form.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: grid; gap: 14px; }
+label { display: grid; gap: 6px; font-size: .86rem; font-weight: 500; }
+input, select, textarea { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px; width: 100%; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.check { display: flex; gap: 10px; align-items: center; font-weight: 500; }
+.check input { width: 20px; height: 20px; accent-color: var(--accent); }
+
+nav.tabs { position: fixed; z-index: 9; left: 0; right: 0; bottom: 0; background: color-mix(in srgb, var(--surface) 96%, transparent); backdrop-filter: blur(10px); border-top: 1px solid var(--line);
+  padding: 6px max(8px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(8px, env(safe-area-inset-left, 0px)); }
+nav.tabs .wrap { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; padding: 0; }
+nav.tabs button { background: none; border: 0; border-radius: 12px; padding: 8px 4px; display: grid; justify-items: center; gap: 2px; color: var(--muted); cursor: pointer; font-size: .74rem; font-weight: 600; position: relative; }
+nav.tabs button svg { width: 24px; height: 24px; }
+@media (max-width: 420px) { nav.tabs button { font-size: .66rem; letter-spacing: -.01em; padding: 8px 0; } }
+/* agendados */
+.g-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.g-tools input { flex: 1 1 200px; min-width: 0; }
+.g-day { display: grid; gap: 8px; }
+.g-day > h3 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 1.2rem; padding: 6px 2px 0; border-top: 1px solid var(--line); }
+.g-day > h3 small { font: 600 .78rem var(--body); color: var(--muted); }
+.g-row { --c: var(--ok); display: grid; grid-template-columns: 58px 1fr auto; gap: 12px; align-items: center; width: 100%; text-align: left; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 14px; padding: 12px 14px; cursor: pointer; font: inherit; }
+.g-row.pending { border-left-style: dashed; }
+.g-row[aria-expanded="true"] { border-color: var(--accent); }
+.g-row time { font: 600 1.05rem/1 var(--mono); color: var(--accent); }
+.g-row div { display: grid; min-width: 0; }
+.g-row strong { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-row span:not(.pill) { color: var(--muted); font-size: .84rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.g-row .right { justify-items: end; gap: 4px; }
+.g-row .right b { font-weight: 600; font-size: .92rem; }
+nav.tabs button[aria-current="page"] { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.badge { position: absolute; top: 2px; left: calc(50% + 6px); min-width: 18px; height: 18px; border-radius: 9px; background: var(--accent); color: var(--accent-ink); font-size: .7rem; display: grid; place-items: center; padding: 0 5px; animation: pop .4s cubic-bezier(.3,1.6,.5,1); }
+@keyframes pop { 40% { transform: scale(1.3); } }
+
+.login { min-height: 80vh; display: grid; place-items: center; }
+.login form { width: min(100%, 380px); }
+.login img { width: 150px; height: 150px; justify-self: center; border-radius: 50%; box-shadow: 0 0 0 1px rgba(212,168,75,.4), 0 20px 60px -20px rgba(212,168,75,.5); }
+.login h1 { text-align: center; font-size: 1.8rem; }
+.err { color: var(--no); font-size: .88rem; }
+.toast { position: fixed; z-index: 30; left: 50%; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); transform: translate(-50%, 16px); opacity: 0; max-width: min(92vw, 440px);
+  background: var(--raise); border: 1px solid var(--accent); border-radius: 14px; padding: 12px 16px; font-size: .9rem; transition: transform .25s, opacity .25s; }
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+/* ---------- editar atendimento ---------- */
+.editor { display: grid; gap: 10px; background: var(--raise); border-radius: 14px; padding: 12px; }
+.editor .two { gap: 8px; }
+.paid { color: var(--ok); font-weight: 600; }
+.unpaid { color: var(--warn); font-weight: 600; }
+
+/* ---------- financeiro ---------- */
+.fin-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.seg { display: inline-flex; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seg button { border: 0; background: none; padding: 7px 16px; border-radius: 999px; cursor: pointer; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--gold-grad); color: var(--accent-ink); }
+.period { display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 6px; }
+.period strong { font: 600 1.15rem var(--display); }
+.period .btn { width: 40px; height: 40px; padding: 0; font-size: 1.3rem; }
+.demo .row { margin-top: 8px; }
+.visit-bars { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; align-items: end; gap: 4px; height: 70px; margin-top: 4px; }
+.visit-bars i { display: block; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 2px; opacity: .75; }
+.visit-bars i:last-child { opacity: 1; }
+.kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 560px) { .kpis { grid-template-columns: repeat(4, 1fr); } }
+.kpi { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 2px; align-content: start; min-width: 0; }
+.kpi.hero { grid-column: span 2; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+.kpi span { color: var(--muted); font-size: .76rem; text-transform: uppercase; letter-spacing: .08em; font-weight: 600; }
+.kpi b { font: 600 1.45rem/1.2 var(--display); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.kpi.hero b { font-size: 2rem; background: var(--gold-grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.kpi small { color: var(--muted); font-size: .78rem; }
+.delta { font-weight: 600; }
+.delta.up { color: var(--ok); } .delta.down { color: var(--no); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 12px; min-width: 0; }
+.panel h3 { font-size: 1.25rem; }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.chart-head small { color: var(--muted); font-size: .8rem; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .grid line { stroke: var(--line); stroke-width: 1; }
+.chart text { fill: var(--muted); font-size: 10px; font-family: var(--body); font-variant-numeric: tabular-nums; }
+.chart .bar { fill: var(--accent); }
+.chart .bar.dim { fill: color-mix(in srgb, var(--accent) 35%, var(--surface)); }
+.chart .hit { fill: transparent; cursor: pointer; }
+.chart .hit:hover + .bar, .chart .bar.on { fill: var(--sand); }
+.tip { position: absolute; pointer-events: none; background: var(--raise); border: 1px solid var(--line); border-radius: 10px; padding: 6px 10px; font-size: .82rem; white-space: nowrap; transform: translate(-50%, -110%); box-shadow: 0 8px 20px -8px rgba(0,0,0,.6); }
+.tip b { display: block; color: var(--ink); }
+.grid2 { display: grid; gap: 14px; }
+@media (min-width: 640px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+.hbars { display: grid; gap: 10px; }
+.hbar { display: grid; gap: 4px; }
+.hbar .lbl { display: flex; justify-content: space-between; gap: 8px; font-size: .86rem; }
+.hbar .lbl span:last-child { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hbar .track { height: 10px; border-radius: 5px; background: var(--raise); overflow: hidden; }
+.hbar .fill { height: 100%; border-radius: 5px; background: var(--accent); transition: width .6s cubic-bezier(.2,.7,.2,1); }
+.groups-line { display: flex; flex-wrap: wrap; gap: 6px; }
+.groups-line .pill { background: var(--raise); color: var(--ink); }
+.table-wrap { overflow-x: auto; margin: 0 -4px; }
+table.sheet { width: 100%; border-collapse: collapse; font-size: .84rem; font-variant-numeric: tabular-nums; }
+table.sheet th { text-align: left; color: var(--muted); font-weight: 600; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; padding: 8px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.sheet td { padding: 9px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+table.sheet td.num, table.sheet th.num { text-align: right; }
+table.sheet tfoot td { font-weight: 700; border-bottom: 0; }
+.xform { display: grid; gap: 10px; }
+@media (min-width: 560px) { .xform { grid-template-columns: 130px 1fr 140px 120px; align-items: end; } .xform .btn { grid-column: 1 / -1; } }
+.xrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.xrow div { display: grid; min-width: 0; }
+.xrow small { color: var(--muted); }
+.xrow b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.sheet-bar { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+.sheet-bar label { flex: 1 1 200px; }
+.sheet-bar .btn { white-space: nowrap; }
+.sheet-note { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: .85rem; }
+
+.goto { display: flex; align-items: center; gap: 10px; font-size: .85rem; color: var(--muted); }
+.goto input { width: auto; padding: 8px 10px; }
+.fit-panel { margin-top: 6px; }
+.fit-title { font-weight: 600; font-size: .9rem; margin-top: 4px; }
+.fit-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.fchip { border: 1px solid color-mix(in srgb, var(--ok) 50%, transparent); background: color-mix(in srgb, var(--ok) 10%, transparent); color: var(--ink);
+  border-radius: 12px; padding: 9px 12px; font-weight: 600; font-size: .85rem; cursor: pointer; display: grid; justify-items: center; gap: 1px; font-variant-numeric: tabular-nums; }
+.fchip:hover { border-color: var(--ok); }
+.fchip.busy { border-color: color-mix(in srgb, var(--no) 40%, transparent); background: color-mix(in srgb, var(--no) 10%, transparent); color: var(--muted); cursor: not-allowed; }
+.fchip small { font-size: .68rem; color: var(--no); font-weight: 600; }
+
+#paidlist { border-color: color-mix(in srgb, var(--ok) 50%, var(--line)); }
+#visits, #promo { display: grid; gap: 12px; }
+#promo .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#visits .top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+#paidlist .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+#remind { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+#remind .top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.rem-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--line); }
+.rem-row div { display: grid; min-width: 0; }
+.rem-row span { color: var(--muted); font-size: .85rem; }
+.m-final { align-self: end; padding-bottom: 12px; font-weight: 600; color: var(--accent); }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <img src="mark.webp" alt="" width="38" height="38">
+    <div class="brand"><b>TENSINI</b><small id="who">Agenda da barbearia</small></div>
+    <span class="conn" id="conn"><i></i><span id="conn-text">Conectando…</span></span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="login" id="login" hidden>
+    <form class="panel" id="login-form">
+      <img src="logo.webp" alt="Tensini Barbieri" width="150" height="150">
+      <h1>Área do barbeiro</h1>
+      <label for="l-email">E-mail<input id="l-email" type="email" autocomplete="username" required></label>
+      <label for="l-pass">Senha<input id="l-pass" type="password" autocomplete="current-password" required></label>
+      <p class="err" id="l-err" hidden></p>
+      <button class="btn b-accent" id="l-btn" type="submit">Entrar</button>
+    </form>
+  </section>
+
+  <div id="app" hidden>
+    <p class="demo" id="demo" hidden>Modo demonstração: os pedidos ficam só neste navegador. Para usar de verdade com os clientes, ligue o banco (veja o README).</p>
+
+    <section class="view" id="v-pedidos">
+      <h2>Pedidos <em>novos</em></h2>
+      <p class="sub">Cada pedido segura o horário do barbeiro até você confirmar. Confirme pelo WhatsApp e toque em Confirmar.</p>
+      <div id="promo" class="panel" hidden></div>
+      <div id="visits" class="panel" hidden></div>
+      <div id="paidlist" class="panel" hidden></div>
+      <div id="remind" class="panel" hidden></div>
+      <div id="pending-list" class="view"></div>
+      <details class="old" id="expired-wrap" hidden><summary id="expired-sum"></summary><div id="expired-list"></div></details>
+    </section>
+
+    <section class="view" id="v-agenda" hidden>
+      <div class="row" style="justify-content:space-between"><h2>Agenda</h2><button class="btn b-accent small" type="button" id="m-open">+ Novo atendimento</button></div>
+      <form class="panel" id="m-form" hidden>
+        <p class="sub">Para clientes que marcaram direto no WhatsApp ou chegaram sem horário. O horário também some do site.</p>
+        <div class="two">
+          <label for="m-name">Cliente<input id="m-name" type="text" maxlength="80" required placeholder="Nome"></label>
+          <label for="m-phone">WhatsApp (opcional)<input id="m-phone" type="tel" inputmode="tel" placeholder="(49) 9 0000-0000"></label>
+        </div>
+        <div class="two">
+          <label for="m-svc">Serviço<select id="m-svc"></select></label>
+          <label for="m-barber" id="m-barber-wrap">Barbeiro<select id="m-barber"></select></label>
+        </div>
+        <label for="m-custom" id="m-custom-wrap" hidden>Nome do serviço<input id="m-custom" type="text" maxlength="60" placeholder="Ex.: luzes, relaxamento"></label>
+        <div class="two">
+          <label for="m-opt">Opção<select id="m-opt"></select></label>
+          <label for="m-total">Valor da tabela (R$)<input id="m-total" type="number" min="0" step="1" inputmode="numeric"></label>
+        </div>
+        <div class="two">
+          <label for="m-disc">Desconto (R$)<input id="m-disc" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0"></label>
+          <p class="m-final" id="m-final"></p>
+        </div>
+        <div class="two">
+          <label for="m-date">Dia<input id="m-date" type="date" required></label>
+          <label for="m-time">Horário<input id="m-time" type="time" step="900" value="09:00" required></label>
+        </div>
+        <div class="two">
+          <label for="m-dur">Duração (min)<input id="m-dur" type="number" min="15" step="15" inputmode="numeric"></label>
+          <label for="m-pay">Pagamento<select id="m-pay"><option>Pix</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Dinheiro</option></select></label>
+        </div>
+        <label for="m-sit">Situação<select id="m-sit">
+          <option value="confirmed">Confirmado, ainda não pagou</option>
+          <option value="confirmed-paid">Confirmado e já pagou</option>
+          <option value="done">Já atendido e pagou</option>
+        </select></label>
+        <label for="m-paid" id="m-paid-wrap" hidden>Valor recebido (R$)<input id="m-paid" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        <div class="row"><button class="btn b-accent" type="submit">Salvar atendimento</button><button class="btn b-ghost" type="button" id="m-cancel">Fechar</button></div>
+      </form>
+      <div class="bfilter" id="a-barbers" role="group" aria-label="Barbeiro"></div>
+      <label class="goto" for="a-goto">Ir para o dia<input id="a-goto" type="date"></label>
+      <div class="cal">
+        <div class="cal-head">
+          <button type="button" class="cal-nav" id="a-prev" aria-label="Mês anterior"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <div class="cal-title"><small id="a-who">Todos os barbeiros</small><strong id="a-month">—</strong></div>
+          <button type="button" class="cal-nav" id="a-next" aria-label="Próximo mês"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+        <div class="cal-wd" aria-hidden="true"><span>D</span><span>S</span><span>T</span><span>Q</span><span>Q</span><span>S</span><span>S</span></div>
+        <div class="days" id="a-days" role="group" aria-label="Dias"></div>
+      </div>
+      <div class="timeline" id="a-list"></div>
+    </section>
+
+    <section class="view" id="v-agendados" hidden>
+      <h2>Agendados</h2>
+      <p class="sub">Todos os horários marcados daqui para frente. Toque num cliente para ver os detalhes e as ações.</p>
+      <div class="bfilter" id="g-barbers" role="group" aria-label="Barbeiro"></div>
+      <div class="kpis" id="g-kpis"></div>
+      <div class="g-tools">
+        <div class="seg" role="group" aria-label="Mostrar" id="g-filter">
+          <button type="button" data-f="all" aria-pressed="true">Todos</button>
+          <button type="button" data-f="confirmed" aria-pressed="false">Confirmados</button>
+          <button type="button" data-f="pending" aria-pressed="false">Aguardando</button>
+        </div>
+        <input id="g-search" type="search" placeholder="Buscar cliente ou serviço" aria-label="Buscar cliente ou serviço">
+      </div>
+      <div id="g-list" class="view"></div>
+    </section>
+
+    <section class="view" id="v-financeiro" hidden>
+      <div class="fin-head">
+        <h2>Financeiro</h2>
+        <div class="seg" role="group" aria-label="Período">
+          <button type="button" data-mode="month" aria-pressed="true">Mês</button>
+          <button type="button" data-mode="year" aria-pressed="false">Ano</button>
+        </div>
+      </div>
+      <div class="sheet-bar">
+        <label for="f-sheet">Planilha<select id="f-sheet"></select></label>
+        <button type="button" class="btn small b-no" id="f-reset">Zerar planilha</button>
+      </div>
+      <p class="sheet-note" id="f-sheet-note" hidden></p>
+      <div class="period">
+        <button type="button" class="btn b-ghost small" id="f-prev" aria-label="Período anterior">‹</button>
+        <strong id="f-label"></strong>
+        <button type="button" class="btn b-ghost small" id="f-next" aria-label="Próximo período">›</button>
+      </div>
+      <div class="demo" id="f-demo" hidden>
+        <span>Demonstração: preencha com 4 meses de atendimentos de exemplo para ver os relatórios.</span>
+        <span class="row"><button class="btn small b-accent" type="button" id="f-seed">Preencher com exemplos</button><button class="btn small b-ghost" type="button" id="f-clear">Apagar tudo</button></span>
+      </div>
+      <div class="kpis" id="f-kpis"></div>
+      <div class="panel">
+        <div class="chart-head"><h3>Entradas</h3><small id="f-chart-sub"></small></div>
+        <div class="chart" id="f-chart"></div>
+      </div>
+      <div class="grid2">
+        <div class="panel" id="f-barbers-panel"><div class="chart-head"><h3>Por barbeiro</h3><small>atendimentos e valor · para a comissão</small></div><div id="f-barbers"></div></div>
+        <div class="panel"><div class="chart-head"><h3>Por serviço</h3><small>atendimentos realizados</small></div><div class="groups-line" id="f-groups"></div><div id="f-procs"></div></div>
+        </div>
+      <div class="panel"><div class="chart-head"><h3>Forma de pagamento</h3><small>do que entrou</small></div><div id="f-pay"></div></div>
+      <div class="panel">
+        <div class="chart-head"><h3>Planilha de atendimentos</h3><button class="btn small b-ghost" type="button" id="f-csv">Baixar planilha</button></div>
+        <div class="table-wrap"><table class="sheet" id="f-table"></table></div>
+      </div>
+      <div class="panel">
+        <div class="chart-head"><h3>Despesas</h3><small id="f-exp-sum"></small></div>
+        <form id="x-form" class="xform">
+          <label for="x-date">Data<input id="x-date" type="date" required></label>
+          <label for="x-desc">Descrição<input id="x-desc" type="text" maxlength="80" required placeholder="Ex.: pomadas, lâminas"></label>
+          <label for="x-cat">Categoria<select id="x-cat"><option>Produtos</option><option>Material</option><option>Contas</option><option>Aluguel</option><option>Marketing</option><option>Outros</option></select></label>
+          <label for="x-amount">Valor (R$)<input id="x-amount" type="number" min="0.01" step="0.01" inputmode="decimal" required></label>
+          <button class="btn b-accent" type="submit">Lançar despesa</button>
+        </form>
+        <div id="x-list" class="view"></div>
+      </div>
+    </section>
+
+    <section class="view" id="v-bloquear" hidden>
+      <h2>Bloquear <em>horário</em></h2>
+      <p class="sub">Folga, compromisso ou almoço de um barbeiro, ou a barbearia toda: o horário some do site na hora.</p>
+      <form class="panel" id="block-form">
+        <label for="b-barber" id="b-barber-wrap">De quem?<select id="b-barber"></select></label>
+        <label for="b-date">Dia<input id="b-date" type="date" required></label>
+        <label class="check"><input type="checkbox" id="b-all"> Dia inteiro</label>
+        <div class="two" id="b-times">
+          <label for="b-from">Das<input id="b-from" type="time" value="12:00" step="900"></label>
+          <label for="b-to">Até<input id="b-to" type="time" value="13:00" step="900"></label>
+        </div>
+        <label for="b-reason">Motivo (só você vê)<input id="b-reason" type="text" maxlength="80" placeholder="Ex.: almoço, médico, folga"></label>
+        <button class="btn b-accent" type="submit">Bloquear</button>
+      </form>
+      <h3 style="margin-top:8px">Próximos bloqueios</h3>
+      <div id="block-list" class="view"></div>
+    </section>
+
+    <section class="view" id="v-ajustes" hidden>
+      <h2>Ajustes</h2>
+      <form class="panel" id="prefs">
+        <p class="sub">Esses dados ficam só neste celular e entram nas mensagens que você manda para os clientes.</p>
+        <label for="p-pix">Chave Pix<input id="p-pix" type="text" placeholder="CPF, celular, e-mail ou chave aleatória"></label>
+        <label for="p-card">Link de pagamento do cartão (opcional)<input id="p-card" type="url" placeholder="https://…"></label>
+        <label for="p-addr">Endereço completo da barbearia (vai na mensagem de confirmação)<textarea id="p-addr" rows="2" placeholder="Rua, número, referência"></textarea></label>
+        <button class="btn b-accent" type="submit">Salvar</button>
+      </form>
+      <div class="panel" style="display:grid;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px">
+        <b>Avisos de novos pedidos</b>
+        <p class="sub">Toque para ativar o som e a notificação deste aparelho quando chegar um pedido (com o app aberto).</p>
+        <button class="btn b-ghost" id="notify-btn" type="button">Ativar avisos</button>
+      </div>
+      <button class="btn b-ghost" id="logout" type="button">Sair</button>
+    </section>
+  </div>
+</main>
+
+<nav class="tabs" id="tabs" hidden aria-label="Seções">
+  <div class="wrap">
+    <button type="button" data-v="pedidos" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h10"/></svg>Pedidos<span class="badge" id="badge" hidden></span></button>
+    <button type="button" data-v="agenda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Agenda</button>
+    <button type="button" data-v="agendados"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/></svg>Agendados</button>
+    <button type="button" data-v="financeiro"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Financeiro</button>
+    <button type="button" data-v="bloquear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>Bloquear</button>
+    <button type="button" data-v="ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>Ajustes</button>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="config.js"></script>
+<script src="catalog.js"></script>
+<script src="vendor/supabase-js-2.117.2.js"></script>
+<script src="data.js"></script>
+<script src="admin.js"></script>
+<script src="finance.js"></script>
+</body>
+</html>
